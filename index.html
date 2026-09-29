@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Discount Demolition 2</title>
+<meta name="description" content="Blow up a shopping website with rockets, railguns and black holes while a zombie horde chases you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Silkscreen&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Game area: a parody pharmacy website you can destroy"></canvas>
+  <div class="dmg" id="dmg"></div>
+
+  <div class="hud-top">
+    <div class="tag" id="tag"><span class="tag-hole"></span><span class="tag-small">Destroyed</span><span class="tag-big" id="pct">0%</span></div>
+    <div class="hp-wrap">
+      <div class="hp-bar" role="progressbar" aria-label="Health"><i id="hpFill"></i><b id="hpNum">100</b></div>
+      <div class="dash-bar" aria-hidden="true"><i id="dashFill"></i></div>
+      <div class="wave" id="waveTxt">Get ready</div>
+    </div>
+    <div class="hud-actions">
+      <div class="score-box"><span class="tag-small">Score</span><b id="score">0</b><span class="kills" id="kills">0 kills</span></div>
+      <div class="chips">
+        <button class="chip" id="mute" aria-pressed="false">Mute</button>
+        <button class="chip" id="reset">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="combo" id="combo" aria-live="off"></div>
+  <div class="banner" id="banner" role="status"><span class="banner-t" id="bannerT"></span><small id="bannerSub"></small></div>
+  <div class="weapons" id="weapons" role="toolbar" aria-label="Weapons"></div>
+
+  <div class="touch">
+    <div class="pad">
+      <button class="tbtn" id="bL" aria-label="Move left">◀</button>
+      <button class="tbtn" id="bR" aria-label="Move right">▶</button>
+    </div>
+    <div class="tmid">
+      <p class="touch-hint">Hold anywhere on the page to shoot there</p>
+      <div class="pad">
+        <button class="tbtn small" id="bD">Dash</button>
+        <button class="tbtn small" id="bG">Grenade</button>
+      </div>
+    </div>
+    <button class="tbtn jump" id="bJ">Jump<br><small>hold = jetpack</small></button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="intro" id="intro">
+    <div class="card">
+      <h1>Discount Demolition 2</h1>
+      <p>One stickman, nine weapons and a very overpriced chemist website. Wreck it before the zombies wreck you.</p>
+      <ul class="desk">
+        <li>A / D to move. Space to jump, hold Space for the jetpack</li>
+        <li>Mouse to aim, click or hold to shoot, right click to throw a grenade</li>
+        <li>1 to 9 or the mouse wheel to switch weapons</li>
+        <li>Shift to dash. S to drop through the floor. M to mute</li>
+      </ul>
+      <ul class="tonly">
+        <li>◀ ▶ to move, Jump to jump. Keep holding Jump for the jetpack</li>
+        <li>Touch and hold anywhere on the page to shoot at that spot</li>
+        <li>Pick a weapon from the bar at the top</li>
+      </ul>
+      <button id="start">Start wrecking</button>
+      <p class="fine">MegaSave is a made-up shop. Not affiliated with any real pharmacy.</p>
+    </div>
+  </div>
+
+  <div class="intro end" id="endCard" hidden>
+    <div class="card">
+      <h1 id="endTitle">Website destroyed</h1>
+      <p id="endLine"></p>
+      <div class="stats" id="endStats"></div>
+      <div class="btns">
+        <button id="endAgain" class="primary">Play again</button>
+        <button id="endShare" class="secondary">Copy score</button>
+        <button id="endKeep" class="secondary" hidden>Keep smashing</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/site-megasave.js"></script>
+<script src="js/level.js"></script>
+<script src="js/fire.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/boom.js"></script>
+<script src="js/zombies.js"></script>
+<script src="js/player.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/render.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
