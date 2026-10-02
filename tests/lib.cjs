@@ -5,7 +5,8 @@ const root = path.resolve(__dirname, '..'), out = path.join(__dirname, 'out'); f
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json' };
 function serve() {
   const srv = http.createServer((req, res) => {
-    const p = path.join(root, decodeURIComponent(req.url.split('?')[0]).replace(/\/$/, '/index.html'));
+    if (req.url === '/api/health') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end('{"ok":false}'); }   // static host: no render server
+  const p = path.join(root, decodeURIComponent(req.url.split('?')[0]).replace(/\/$/, '/index.html'));
     fs.readFile(p, (e, d) => { if (e) { res.writeHead(404); res.end(); } else { res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(d); } });
   });
   return new Promise(r => srv.listen(0, () => r({ srv, url: 'http://127.0.0.1:' + srv.address().port + '/' })));

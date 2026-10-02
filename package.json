@@ -1,0 +1,19 @@
+{
+  "name": "discount-demolition-2",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Destroy any website. A browser game with a Playwright render server.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test",
+    "test:game": "node tests/smoke.cjs && node tests/scenes.cjs && node tests/e2e-site.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "playwright": "1.56.1"
+  }
+}

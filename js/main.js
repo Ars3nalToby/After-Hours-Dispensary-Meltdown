@@ -153,10 +153,8 @@ function toggleMute() {
 function bindUI() {
   document.getElementById('mute').addEventListener('click', toggleMute);
   document.getElementById('reset').addEventListener('click', () => { if (S.mode === 'title') return; D.newGame(false); D.hud.toast('Site rebuilt. Full price again.'); });
-  document.getElementById('start').addEventListener('click', () => {
-    document.getElementById('intro').hidden = true; D.audio.init(); D.newGame(false); D.sfx('wave', 0.6);
-  });
   document.getElementById('endAgain').addEventListener('click', () => { D.hud.endShown = false; D.newGame(false); });
+  document.getElementById('endSites').addEventListener('click', D.openMenu);
   document.getElementById('endShare').addEventListener('click', () => D.hud.share());
   document.getElementById('endKeep').addEventListener('click', () => { document.getElementById('endCard').hidden = true; S.mode = 'play'; });
   const mb = document.getElementById('mute'); mb.textContent = D.audio.muted ? 'Unmute' : 'Mute'; mb.setAttribute('aria-pressed', String(D.audio.muted));
@@ -165,12 +163,12 @@ function bindUI() {
 /* ---------- boot ---------- */
 addEventListener('resize', () => {
   measure();
-  if (S.mode === 'title' && Math.abs(Math.max(360, Math.min(1100, S.VW)) - L.W) > 40) { L.build(S.VW); S.offX = Math.max(0, (S.VW - L.W) / 2); }
+  if (S.mode === 'title' && L.siteId !== 'imported' && Math.abs(Math.max(360, Math.min(1100, S.VW)) - L.W) > 40) { L.build(S.VW); S.offX = Math.max(0, (S.VW - L.W) / 2); }
 });
 if (matchMedia) { const mq = matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) mq.addEventListener('change', readBackdrop); }
 
 async function init() {
-  D.gfx.init(cv); D.hud.init(); bindUI();
+  D.gfx.init(cv); D.hud.init(); bindUI(); D.menu.init();
   L.W = 360; measure(); readBackdrop();
   try {
     await Promise.race([

@@ -10,30 +10,39 @@
 const CELL = D.CELL, FC = D.FC, TAU = D.TAU;
 const L = D.L = {
   W: 0, H: 0, GW: 0, GH: 0, FW: 0, FH: 0, grid: null, pix: null, site: null, bg: null,
-  solidTotal: 1, solidNow: 1, barrels: [], flam: null, barGrid: null, src: null, srcBarrels: null,
+  solidTotal: 1, solidNow: 1, barrels: [], hard: [], name: '', url: '', siteId: 'megasave', flam: null, barGrid: null, src: null, srcBarrels: null,
 };
-let sctx = null, bctx = null, grid = null, pix = null, W = 0, H = 0, GW = 0, GH = 0;
+let sctx = null, bctx = null, grid = null, pix = null, W = 0, H = 0, GW = 0, GH = 0, blkMap = null;
 
 /* ---------- building ---------- */
-L.build = function (vw) {
-  const w = Math.max(360, Math.min(1100, vw));
+L.build = function (vw, siteId) {
+  const site = D.siteById(siteId || L.siteId || 'megasave'), w = Math.max(360, Math.min(1100, vw));
   const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = 7000;
-  const barrels = [];
-  const h = Math.ceil(D.drawMegaSave(tmp.getContext('2d'), w, { barrel(x, y, bw, bh) { barrels.push({ x: x, y: y, w: bw, h: bh }); } }));
+  const barrels = [], blocks = [];
+  const reg = {
+    barrel(x, y, bw, bh) { barrels.push({ x: x, y: y, w: bw, h: bh }); },
+    explosive(x, y, bw, bh) { blocks.push({ x: x, y: y, w: bw, h: bh, type: 'explosive' }); },
+    hard(x, y, bw, bh) { blocks.push({ x: x, y: y, w: bw, h: bh, type: 'hard' }); },
+  };
+  const h = Math.ceil(site.build(tmp.getContext('2d'), w, reg));
   const src = document.createElement('canvas'); src.width = w; src.height = h;
   src.getContext('2d').drawImage(tmp, 0, 0);
-  L.fromCanvas(src, barrels);
+  L.siteId = site.id;
+  L.fromCanvas(src, barrels, { blocks: blocks, bgColor: site.bg, name: site.name, url: site.url || 'megasave-chemist.example/sale' });
 };
 
 // Builds a playable level from any canvas (built-in art now, screenshots in Phase 2).
-L.fromCanvas = function (src, barrels) {
-  L.src = src; L.srcBarrels = barrels || [];
+L.fromCanvas = function (src, barrels, opts) {
+  opts = opts || {};
+  L.src = src; L.srcBarrels = barrels || []; L.srcOpts = opts;
+  L.name = opts.name || 'this site'; L.url = opts.url || '';
   W = L.W = src.width; H = L.H = src.height;
   L.site = document.createElement('canvas'); L.site.width = W; L.site.height = H;
   sctx = L.site.getContext('2d');   // stays GPU-backed: we draw and erase on it every frame, but never read it back
   sctx.drawImage(src, 0, 0);
   L.bg = document.createElement('canvas'); L.bg.width = W; L.bg.height = H;
-  bctx = L.bg.getContext('2d'); bctx.fillStyle = D.C.paper; bctx.fillRect(0, 0, W, H);
+  bctx = L.bg.getContext('2d');
+  if (opts.bgCanvas) bctx.drawImage(opts.bgCanvas, 0, 0, W, H); else { bctx.fillStyle = opts.bgColor || D.C.paper; bctx.fillRect(0, 0, W, H); }
 
   const rc = document.createElement('canvas'); rc.width = W; rc.height = H;   // one-off readback copy for the original pixels
   const rg = rc.getContext('2d', { willReadFrequently: true }); rg.drawImage(src, 0, 0);
@@ -62,15 +71,30 @@ L.fromCanvas = function (src, barrels) {
     flam[fy * FW + fx] = lum < 80 ? 235 : sat > 90 ? 125 : lum > 215 ? 95 : 150;
   }
 
-  L.barrels = (barrels || []).map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h, cx: b.x + b.w / 2, cy: b.y + b.h / 2, hp: 34, alive: true }));
+  L.barrels = (barrels || []).map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h, cx: b.x + b.w / 2, cy: b.y + b.h / 2, hp: 34, alive: true, r: 72, rect: false }));
+  // Special blocks. Explosive ones behave like drums (any size, blast radius from size); hard ones soak up damage, then shatter.
+  L.hard = []; blkMap = new Uint16Array(GW * GH);
+  for (const bl of (opts.blocks || [])) {
+    const x = Math.max(0, Math.floor(bl.x)), y = Math.max(0, Math.floor(bl.y)), w = Math.min(W - x, Math.floor(bl.w)), h = Math.min(H - y, Math.floor(bl.h));
+    if (w < 8 || h < 8) continue;
+    if (bl.type === 'explosive') {
+      L.barrels.push({ x: x, y: y, w: w, h: h, cx: x + w / 2, cy: y + h / 2, hp: 34, alive: true, r: Math.max(55, Math.min(105, Math.min(w, h) * 0.6 + 20)), rect: true });
+    } else if (L.hard.length < 250) {
+      const hp = Math.max(70, Math.min(420, Math.sqrt(w * h) * 1.3)), id = L.hard.length + 1;
+      L.hard.push({ id: id, x: x, y: y, w: w, h: h, hp: hp, max: hp, alive: true, q: 0 });
+      for (let gy = Math.floor(y / CELL); gy <= Math.floor((y + h - 1) / CELL); gy++) for (let gx = Math.floor(x / CELL); gx <= Math.floor((x + w - 1) / CELL); gx++)
+        if (grid[gy * GW + gx] && !blkMap[gy * GW + gx]) blkMap[gy * GW + gx] = id;
+      for (let fy = Math.floor(y / FC); fy <= Math.floor((y + h - 1) / FC); fy++) for (let fx = Math.floor(x / FC); fx <= Math.floor((x + w - 1) / FC); fx++) flam[fy * FW + fx] = 0;   // armour does not burn
+    }
+  }
   L.barGrid = new Uint8Array(FW * FH);
   L.barrels.forEach((b, i) => {
     for (let fy = Math.floor(b.y / FC); fy <= Math.floor((b.y + b.h) / FC); fy++) for (let fx = Math.floor(b.x / FC); fx <= Math.floor((b.x + b.w) / FC); fx++)
-      if (fx >= 0 && fy >= 0 && fx < FW && fy < FH) L.barGrid[fy * FW + fx] = i + 1;
+      if (fx >= 0 && fy >= 0 && fx < FW && fy < FH && i < 255) L.barGrid[fy * FW + fx] = i + 1;
   });
   for (const c of chunkPool) c.used = false;
 };
-L.reset = function () { L.fromCanvas(L.src, L.srcBarrels); };
+L.reset = function () { L.fromCanvas(L.src, L.srcBarrels, L.srcOpts); };
 
 /* ---------- collision ---------- */
 function solidCell(gx, gy) {
@@ -130,10 +154,20 @@ L.findFloor = function (x, nearY, headroom) {
 
 /* ---------- destruction ---------- */
 // Removes page pixels in a circle. Returns the number of grid cells cleared.
-L.carve = function (x, y, r) {
+// Hard blocks inside the circle are not cleared; they take (r * power) damage instead and shatter when it runs out.
+L.carve = function (x, y, r, power) {
+  let near = null;
+  const hards = L.hard;
+  for (let i = 0; i < hards.length; i++) {
+    const b = hards[i]; if (!b.alive || x + r < b.x || x - r > b.x + b.w || y + r < b.y || y - r > b.y + b.h) continue;
+    const nx = x < b.x ? b.x : x > b.x + b.w ? b.x + b.w : x, ny = y < b.y ? b.y : y > b.y + b.h ? b.y + b.h : y;
+    if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= r * r) (near || (near = [])).push(b);
+  }
+  if (near) { sctx.save(); sctx.beginPath(); sctx.rect(0, 0, W, H); for (const b of near) sctx.rect(b.x, b.y, b.w, b.h); sctx.clip('evenodd'); }   // keep armour pixels on the canvas
   sctx.globalCompositeOperation = 'destination-out'; sctx.fillStyle = '#000';
   sctx.beginPath(); sctx.arc(x, y, r, 0, TAU); sctx.fill();
   sctx.globalCompositeOperation = 'source-over';
+  if (near) sctx.restore();
   const gx0 = Math.max(0, Math.floor((x - r) / CELL)), gx1 = Math.min(GW - 1, Math.floor((x + r) / CELL));
   const gy0 = Math.max(0, Math.floor((y - r) / CELL)), gy1 = Math.min(GH - 1, Math.floor((y + r) / CELL));
   const r2 = (r + 1) * (r + 1); let n = 0;
@@ -141,11 +175,50 @@ L.carve = function (x, y, r) {
     const cy = gy * CELL + CELL / 2 - y, row = gy * GW;
     for (let gx = gx0; gx <= gx1; gx++) {
       const cx = gx * CELL + CELL / 2 - x;
-      if (cx * cx + cy * cy <= r2 && grid[row + gx]) { grid[row + gx] = 0; n++; }
+      if (cx * cx + cy * cy <= r2 && grid[row + gx] && !(near && blkMap[row + gx])) { grid[row + gx] = 0; n++; }
     }
   }
   L.solidNow -= n;
+  if (near) for (const b of near) {
+    b.hp -= r * (power || 1);
+    if (b.hp <= 0) L.breakBlock(b); else if (D.onBlockHit) D.onBlockHit(b, x, y);
+  }
   return n;
+};
+// Shatter a hard block: effects first (while its pixels still exist), then remove it.
+L.breakBlock = function (b) {
+  if (!b.alive) return;
+  if (D.onBlockBreak) D.onBlockBreak(b);
+  b.alive = false;
+  let n = 0;
+  for (let gy = Math.floor(b.y / CELL); gy <= Math.floor((b.y + b.h - 1) / CELL); gy++) for (let gx = Math.floor(b.x / CELL); gx <= Math.floor((b.x + b.w - 1) / CELL); gx++) {
+    const i = gy * GW + gx; if (blkMap[i] === b.id) { blkMap[i] = 0; if (grid[i]) { grid[i] = 0; n++; } }
+  }
+  L.solidNow -= n;
+  sctx.globalCompositeOperation = 'destination-out'; sctx.fillStyle = '#000'; sctx.fillRect(b.x, b.y, b.w, b.h); sctx.globalCompositeOperation = 'source-over';
+  scorchRect(b);
+};
+function scorchRect(b) { bctx.fillStyle = 'rgba(45,32,28,0.1)'; bctx.fillRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4); }
+// Dark cracks fanning out from an impact, clipped to the block, drawn on the surviving pixels.
+L.crack = function (b, x, y) {
+  sctx.save(); sctx.beginPath(); sctx.rect(b.x, b.y, b.w, b.h); sctx.clip(); sctx.globalCompositeOperation = 'source-atop';
+  sctx.strokeStyle = 'rgba(20,12,14,0.8)'; sctx.lineWidth = 1.6; sctx.lineJoin = 'round';
+  const cx = Math.max(b.x, Math.min(b.x + b.w, x)), cy = Math.max(b.y, Math.min(b.y + b.h, y));
+  for (let i = 0; i < 4; i++) {
+    let a = Math.random() * TAU, px = cx, py = cy; sctx.beginPath(); sctx.moveTo(px, py);
+    for (let s = 0; s < 6; s++) { a += (Math.random() - 0.5) * 1.1; const l = 6 + Math.random() * 12; px += Math.cos(a) * l; py += Math.sin(a) * l; sctx.lineTo(px, py); }
+    sctx.stroke();
+  }
+  sctx.restore();
+};
+// Clear a whole rectangle (explosive blocks go up as a unit).
+L.carveRect = function (x, y, w, h) {
+  sctx.globalCompositeOperation = 'destination-out'; sctx.fillStyle = '#000'; sctx.fillRect(x, y, w, h); sctx.globalCompositeOperation = 'source-over';
+  let n = 0;
+  for (let gy = Math.max(0, Math.floor(y / CELL)); gy <= Math.min(GH - 1, Math.floor((y + h) / CELL)); gy++) for (let gx = Math.max(0, Math.floor(x / CELL)); gx <= Math.min(GW - 1, Math.floor((x + w) / CELL)); gx++) {
+    const i = gy * GW + gx; if (grid[i] && !blkMap[i]) { grid[i] = 0; n++; }
+  }
+  L.solidNow -= n; return n;
 };
 L.pixAt = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? 0 : pix[(y | 0) * W + (x | 0)];
 

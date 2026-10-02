@@ -107,7 +107,7 @@ function railFire() {
       if ((carved++ & 1) === 0) fx.debrisBurst(x, y, 14, 14, 380);
       if ((carved & 3) === 0) fx.sparks(x, y, 4, 420);
       if ((carved % 9) === 0) fx.chunks(x, y, 15, 1, 300);
-      L.carve(x, y, 13);
+      L.carve(x, y, 13, 3);   // armour takes triple damage from the beam
       if ((carved % 3) === 0) L.scorch(x, y, 13, 0.5, true);
     }
   }

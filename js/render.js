@@ -251,7 +251,7 @@ function drawChrome(g) {
   g.fillStyle = '#ECE8DC'; g.fillRect(0, y, L.W, 52);
   g.fillStyle = '#FFFFFF'; D.roundRect(g, 10, y + 11, L.W - 20, 30, 15); g.fill();
   g.strokeStyle = '#C9C3B3'; g.lineWidth = 1; g.stroke();
-  g.fillStyle = '#6B6878'; g.font = '13px ' + D.F_BODY; g.fillText('megasave-chemist.example/sale', 26, y + 31);
+  g.fillStyle = '#6B6878'; g.font = '13px ' + D.F_BODY; g.fillText(L.url || L.name, 26, y + 31);
 }
 
 function drawWorld(g) {

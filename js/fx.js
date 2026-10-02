@@ -95,6 +95,19 @@ FX.chunks = function (x, y, r, n, speed) {
     p.rot = rand(0, TAU); p.vr = rand(-10, 10); p.life = p.max = rand(3, 5.2);
   }
 };
+// Pixels flying out of a whole rectangle (used when a block shatters or an explosive block goes up).
+FX.debrisRect = function (x, y, w, h, n, speed) {
+  const cx = x + w / 2, cy = y + h / 2, half = Math.max(w, h) / 2 + 1;
+  for (let t = 0, made = 0; t < n * 2 && made < n; t++) {
+    const px = x + Math.random() * w, py = y + Math.random() * h;
+    if (px < 0 || py < 0 || px >= L.W || py >= L.H) continue;
+    const v = L.pix[(py | 0) * L.W + (px | 0)]; if ((v >>> 24) < 60) continue;
+    const p = spawn(K.DEB, true); if (!p) return;
+    const dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy) || 1, sp = speed * (0.4 + 0.8 * (1 - d / half)) * (0.6 + Math.random() * 0.7);
+    p.x = px; p.y = py; p.vx = dx / d * sp + rand(-30, 30); p.vy = dy / d * sp - rand(60, 220);
+    p.s = 2 + (Math.random() * 3 | 0); p.life = p.max = 1.3 + Math.random() * 1.3; p.col = D.rgb(v & 255, (v >> 8) & 255, (v >> 16) & 255); made++;
+  }
+};
 FX.fireball = function (x, y, r, k, load) {
   let p = spawn(K.FIRE);   // warm light bloom that tints the page around the blast
   if (p) { p.x = x; p.y = y; p.s = r * 2.2; p.z = r * 2.4; p.life = p.max = 0.34; p.b = 2; p.a = 0.5; }

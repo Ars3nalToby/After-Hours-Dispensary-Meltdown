@@ -100,7 +100,7 @@ body{height:100%;margin:0;background:var(--backdrop);overflow:hidden;font-family
 #start,.btns button{font:18px/1 "Archivo Black",Impact,sans-serif;border:3px solid var(--ink);border-radius:12px;padding:14px 18px;box-shadow:4px 4px 0 var(--ink);cursor:pointer;color:var(--ink)}
 #start{background:var(--yellow);width:100%}
 #start:active,.btns button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
-.fine{font-size:12px;opacity:.7;margin:12px 0 0!important}
+.card .fine{font-size:12px;line-height:1.4;opacity:.7;margin:10px 0 0!important}
 .stats{display:grid;gap:6px;margin:0 0 16px}
 .stats div{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px dashed rgba(27,27,47,.25);padding:4px 0;font-size:15px}
 .stats b{font:18px/1 "Archivo Black",Impact,sans-serif;font-variant-numeric:tabular-nums}
@@ -124,3 +124,28 @@ body{height:100%;margin:0;background:var(--backdrop);overflow:hidden;font-family
   .card h1{font-size:26px}
 }
 @media (prefers-reduced-motion: reduce){.tag.bump,.combo.bump,.dmg.on,.end .card{animation:none}.toast,.banner{transition:none}.hp-bar.low i{animation:none}}
+
+/* site picker */
+.sites{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 12px}
+.site{font:inherit;text-align:left;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:10px;padding:8px 10px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);display:flex;flex-direction:column;gap:2px}
+.site b{font:14px/1.1 "Archivo Black",Impact,sans-serif}
+.site span{font:400 10px/1.2 "Silkscreen",monospace;opacity:.7}
+.site[aria-checked="true"]{background:var(--yellow)}
+.site:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.sites.busy{opacity:.5;pointer-events:none}
+.or{display:flex;align-items:center;gap:10px;margin:16px 0 10px;font:400 11px/1 "Silkscreen",monospace;opacity:.75}
+.or::before,.or::after{content:"";flex:1;border-top:2px dashed rgba(27,27,47,.3)}
+.urlform{display:flex;gap:8px;margin:0 0 8px}
+.urlform input{flex:1 1 auto;min-width:0;font:16px/1 system-ui,sans-serif;padding:12px;border:3px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.urlform input:focus-visible{outline:2px solid var(--pink);outline-offset:1px}
+.urlform button{flex:0 0 auto;font:15px/1 "Archivo Black",Impact,sans-serif;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:10px;padding:0 14px;box-shadow:3px 3px 0 var(--ink);cursor:pointer}
+.urlform button:disabled,.urlform input:disabled{opacity:.45;cursor:not-allowed}
+.urlform.off{opacity:.6}
+.linkish{background:none;border:0;padding:6px 0;font:inherit;font-size:14px;color:var(--teal);text-decoration:underline;cursor:pointer}
+.upl{margin:0 0 4px}
+.msg{min-height:1.2em;margin:6px 0 0!important;font-size:14px!important}
+.msg.err{color:#B3153E;font-weight:600}
+.msg.load::before{content:"";display:inline-block;width:12px;height:12px;margin-right:8px;border:3px solid var(--ink);border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.msg.load::before{animation:none}}
+@media (max-width:640px){.chips{flex-wrap:wrap;justify-content:flex-end}}

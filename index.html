@@ -26,6 +26,7 @@
       <div class="score-box"><span class="tag-small">Score</span><b id="score">0</b><span class="kills" id="kills">0 kills</span></div>
       <div class="chips">
         <button class="chip" id="mute" aria-pressed="false">Mute</button>
+        <button class="chip" id="changeSite">Change site</button>
         <button class="chip" id="reset">Restart</button>
       </div>
     </div>
@@ -55,7 +56,7 @@
   <div class="intro" id="intro">
     <div class="card">
       <h1>Discount Demolition 2</h1>
-      <p>One stickman, nine weapons and a very overpriced chemist website. Wreck it before the zombies wreck you.</p>
+      <p>One stickman, nine weapons and a website that has it coming. Wreck it before the zombies wreck you.</p>
       <ul class="desk">
         <li>A / D to move. Space to jump, hold Space for the jetpack</li>
         <li>Mouse to aim, click or hold to shoot, right click to throw a grenade</li>
@@ -67,8 +68,17 @@
         <li>Touch and hold anywhere on the page to shoot at that spot</li>
         <li>Pick a weapon from the bar at the top</li>
       </ul>
+      <div class="sites" id="sites" role="radiogroup" aria-label="Choose a site to wreck"></div>
       <button id="start">Start wrecking</button>
-      <p class="fine">MegaSave is a made-up shop. Not affiliated with any real pharmacy.</p>
+      <div class="or"><span>or wreck a real website</span></div>
+      <form id="urlForm" class="urlform" autocomplete="off">
+        <input id="urlInput" type="text" inputmode="url" spellcheck="false" placeholder="Paste a web address" aria-label="Web address">
+        <button id="urlGo" type="submit">Wreck it</button>
+      </form>
+      <div class="upl"><button id="shot" type="button" class="linkish">Upload a screenshot instead</button><input id="shotInput" type="file" accept="image/png,image/jpeg,image/webp" hidden></div>
+      <p id="siteMsg" class="msg" role="status" aria-live="polite"></p>
+      <button id="cancel" type="button" class="linkish" hidden>Cancel</button>
+      <p class="fine">Built-in sites are made up. The real-website mode loads the page on our server and turns a picture of it into a level. Nothing from that site runs in your browser.</p>
     </div>
   </div>
 
@@ -81,6 +91,7 @@
         <button id="endAgain" class="primary">Play again</button>
         <button id="endShare" class="secondary">Copy score</button>
         <button id="endKeep" class="secondary" hidden>Keep smashing</button>
+        <button id="endSites" class="secondary">New website</button>
       </div>
     </div>
   </div>
@@ -89,6 +100,8 @@
 <script src="js/core.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/site-megasave.js"></script>
+<script src="js/sites.js"></script>
+<script src="js/siteimport.js"></script>
 <script src="js/level.js"></script>
 <script src="js/fire.js"></script>
 <script src="js/fx.js"></script>
@@ -98,6 +111,7 @@
 <script src="js/weapons.js"></script>
 <script src="js/render.js"></script>
 <script src="js/hud.js"></script>
+<script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

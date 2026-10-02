@@ -29,6 +29,7 @@ function rr(g, x, y, w, h, r) {
   g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
 D.roundRect = rr;
+D.wrapText = (g, t, x, y, w, lh, n) => wrapText(g, t, x, y, w, lh, n);
 function wrapText(g, text, x, y, maxW, lh, maxLines) {
   maxLines = maxLines || 99;
   const words = text.split(' '); let line = '', n = 0;
@@ -144,6 +145,19 @@ function productGrid(g, items, m, y, W, narrow) {
   items.forEach((p, i) => drawCard(g, p, m + (i % cols) * (cw + gap), y + Math.floor(i / cols) * (ch + gap), cw, ch, narrow));
   return y + Math.ceil(items.length / cols) * (ch + gap) - gap;
 }
+
+// Hazard overlay for explosive blocks: yellow/ink striped frame plus a flame badge. Used by built-in sites and screenshot imports.
+D.drawHazard = function (g, x, y, w, h) {
+  g.save();
+  g.fillStyle = 'rgba(232,63,111,0.12)'; g.fillRect(x, y, w, h);
+  g.lineWidth = 4; g.strokeStyle = C.ink; g.strokeRect(x + 2, y + 2, w - 4, h - 4);
+  g.setLineDash([9, 9]); g.strokeStyle = C.yellow; g.strokeRect(x + 2, y + 2, w - 4, h - 4); g.setLineDash([]);
+  const bx = x + w - 15, by = y + 15;
+  g.fillStyle = '#D7263D'; g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.arc(bx, by, 12, 0, TAU); g.fill(); g.stroke();
+  g.fillStyle = C.yellow; g.beginPath(); g.moveTo(bx, by - 8); g.bezierCurveTo(bx + 7, by - 2, bx + 6, by + 6, bx, by + 7);
+  g.bezierCurveTo(bx - 6, by + 6, bx - 7, by, bx - 2, by - 3); g.bezierCurveTo(bx - 1, by - 5, bx, by - 6, bx, by - 8); g.fill();
+  g.restore();
+};
 
 D.drawMegaSave = function (g, W, registry) {
   reg = registry;

@@ -31,7 +31,7 @@ D.damageBarrel = function (i, dmg, delay) {
   b.hp -= dmg;
   if (b.hp <= 0) {
     b.alive = false;
-    D.queueBoom(b.cx, b.cy, 72, { dmg: 120, selfDmg: 34, ignite: 1, barrel: true }, delay === undefined ? 0.06 + Math.random() * 0.08 : delay);
+    D.queueBoom(b.cx, b.cy, b.r || 72, { dmg: 120, selfDmg: 34, ignite: 1, barrel: true, rect: b.rect ? b : null }, delay === undefined ? 0.06 + Math.random() * 0.08 : delay);
   }
 };
 // Damage every drum whose rectangle is within reach of a circle.
@@ -63,6 +63,12 @@ D.boom = function (x, y, r, o) {
   boomLoad += 1;
 
   // 1. Page pieces first, while the cells are still solid.
+  if (o.rect) {   // an explosive block (ad, button, banner) goes up as a whole rectangle
+    const b = o.rect, area = b.w * b.h;
+    fx.debrisRect(b.x, b.y, b.w, b.h, (Math.min(400, (area / 90) | 0) * load) | 0, 380);
+    for (let i = 0; i < Math.min(6, 2 + area / 8000); i++) fx.chunks(b.x + Math.random() * b.w, b.y + Math.random() * b.h, Math.min(24, Math.min(b.w, b.h) / 2), 1, 360);
+    L.carveRect(b.x, b.y, b.w, b.h);
+  }
   fx.debrisBurst(x, y, r, ((70 + 200 * k) * load) | 0, 320 + 120 * k);
   fx.chunks(x, y, r, ((5 + 8 * k) * load) | 0, 380 + 90 * k);
 
@@ -136,5 +142,23 @@ D.screenUpdate = function (dt) {
   S.zoom *= Math.exp(-dt * 9);
   S.chromaCd -= dt; S.hitCd -= dt;
   S.chroma = Math.max(0, S.chroma - dt * 4.2);
+};
+
+/* ---------- high-HP blocks ---------- */
+D.onBlockHit = function (b, x, y) {
+  fx.sparks(x, y, 4, 280); if (Math.random() < 0.4) fx.dust(x, y, 1, 3);
+  S.trauma = Math.min(1, S.trauma + 0.02);
+  const q = Math.floor((1 - b.hp / b.max) * 4);
+  if (q > b.q) { b.q = q; L.crack(b, x, y); D.sfx('smash', 0.7 * attenuation(x, y)); fx.ring(x, y, 40, 0.3, 4, 'rgb(255,255,255)'); }
+};
+D.onBlockBreak = function (b) {
+  const area = b.w * b.h, cx = b.x + b.w / 2, cy = b.y + b.h / 2, att = attenuation(cx, cy), load = D.quality;
+  fx.debrisRect(b.x, b.y, b.w, b.h, Math.min(380, (area / 100) | 0) * load | 0, 380);
+  for (let i = 0; i < Math.min(10, 3 + area / 5000); i++) fx.chunks(b.x + Math.random() * b.w, b.y + Math.random() * b.h, Math.min(26, Math.min(b.w, b.h) / 2), 1, 380);
+  fx.dust(cx, b.y + b.h, 8, Math.min(60, b.w / 3)); fx.sparks(cx, cy, 20 * load | 0, 420);
+  fx.ring(cx, cy, Math.min(220, Math.max(b.w, b.h) * 0.8), 0.5, 10, 'rgb(255,226,170)');
+  fx.smokePuff(cx, cy, Math.min(40, b.w / 4), 0, -60, 1.6, 0.8, 0.8, -20);
+  S.trauma = Math.min(1, S.trauma + 0.25 * att); if (!D.reduceMotion && att > 0.45 && S.hitCd <= 0) { S.hitstop = Math.max(S.hitstop, 2 / 60); S.hitCd = 0.28; }
+  D.sfx('boom', 0.5 + 0.4 * att, 0.7); fx.popup(cx, b.y - 8, 'Smashed', D.C.yellow, 16);
 };
 })(window.DD);

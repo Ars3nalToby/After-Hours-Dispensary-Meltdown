@@ -75,7 +75,7 @@ H.update = function () {
 
 /* ---------- end cards ---------- */
 H.shareText = function () {
-  return 'I destroyed ' + H.pct() + '% of MegaSave and killed ' + S.kills + ' zombies in Discount Demolition 2. Score ' + Math.floor(S.score).toLocaleString('en-US') + '. Beat it: ' + location.href.split('#')[0];
+  return 'I destroyed ' + H.pct() + '% of ' + L.name + ' and killed ' + S.kills + ' zombies in Discount Demolition 2. Score ' + Math.floor(S.score).toLocaleString('en-US') + '. Beat it: ' + location.href.split('#')[0];
 };
 H.share = function () {
   const txt = H.shareText();
@@ -92,7 +92,7 @@ H.showEnd = function (kind) {
   let best = S.best; try { best = Math.max(S.best, +localStorage.getItem('dd2-best') || 0); } catch (_) {}
   const isBest = S.score > best; if (isBest) { best = Math.floor(S.score); try { localStorage.setItem('dd2-best', String(best)); } catch (_) {} } S.best = best;
   el.endTitle.textContent = win ? 'Website destroyed' : 'You got eaten';
-  el.endLine.textContent = win ? 'MegaSave is ' + pct + '% rubble. Head office has stopped answering.' : 'The zombies took your lunch and your jetpack. MegaSave is ' + pct + '% destroyed.';
+  el.endLine.textContent = win ? L.name + ' is ' + pct + '% rubble. Head office has stopped answering.' : 'The zombies took your lunch and your jetpack. ' + L.name + ' is ' + pct + '% destroyed.';
   el.endStats.innerHTML = '';
   const rows = [['Score', Math.floor(S.score).toLocaleString('en-US') + (isBest ? ' (new best)' : '')], ['Destroyed', pct + '%'], ['Zombies', String(S.kills)], ['Wave', String(S.wave)], ['Best score', best.toLocaleString('en-US')]];
   for (const r of rows) { const d = document.createElement('div'); d.innerHTML = '<span></span><b></b>'; d.firstChild.textContent = r[0]; d.lastChild.textContent = r[1]; el.endStats.appendChild(d); }
